@@ -16,3 +16,8 @@ Here I will explain how to setup a ros noetic container
 ##### xhost +
 #### New terminal 
 #### docker exec -it robot bash
+##### or sudo docker run -it --net=host   --env="DISPLAY"   --env="QT_X11_NO_MITSHM=1"   --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"   --volume="$HOME/Documents:$HOME/Documents:rw"   --device=/dev/ttyUSB0:/dev/ttyUSB0   --device=/dev/ttyUSB1:/dev/ttyUSB1   --device=/dev/ttyUSB2:/dev/ttyUSB2 --device=/dev/input/js0  --name robot_6   osrf/ros:melodic-desktop-full   /bin/bash
+
+
+### running the code 
+install gmapping , move-base
