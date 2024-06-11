@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="pioneer_port" default="/dev/ttyUSB1"/>
+  <arg name="sick_port" default="/dev/ttyUSB0"/>
+  <arg name="debug_aria" default="true"/>
+   <arg name="use_sonar" default="true"/>
+    <arg name="sick_frame" default="base_link"/>
+  
+  
+
+  <node pkg="rosaria" type="RosAria" name="RosAria" output="screen">
+    <param name="port" value="$(arg pioneer_port)"/>
+    <param name="base_link_frame" value="base_link"/>
+    <remap from="RosAria/cmd_vel" to="cmd_vel"/>
+    <remap from="RosAria/pose" to="/odom"/>
+  </node>
+
+  <!--node pkg="p2os_driver" type="p2os_driver" name="p2os_driver" output="screen">
+    <param name="port" value="$(arg pioneer_port)"/>
+    <param name="use_sonar" value="true"/>
+    <param name="pulse" value="1.0" />
+    <remap from="/pose" to="/odom"/>
+  </node-->
+
+  <node pkg="tf" type="static_transform_publisher" name="scan_link_broadcaster"
+	args="0.101728 0.00892339 0.495 0.00910236 0.0 0.0 base_link base_laser_link 50"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="base_footprint_broadcaster"
+	args="0.0 0.0 0.0 0.0 0.0 0.0 base_footprint base_link 50"/>
+	
+	 <node pkg="tf" type="static_transform_publisher" name="base_sonar_broadcaster"
+	args="0.0 0.0 0.0 0.0 0.0 0.0 base_link sonar 50"/>
+	
+ <!--node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="sonar_to_laser" output="screen">
+ <remap from="cloud_in" to="/RosAria/sonar_pointcloud2"/>
+    </node-->
+ <node name="slam_gmapping_laser" pkg="gmapping" type="slam_gmapping">
+        <param name="odom_frame" value="odom"/>
+         <param name="delta" value="0.1"/>
+        <param name="xmin" value="-5.0"/>
+        <param name="ymin" value="-5.0"/>
+        <param name="xmax" value="5.0"/>
+        <param name="ymax" value="5.0"/>
+     </node>
+   
+
+   <node pkg="sicks300" type="sick300_driver" name="sick_driver" output="screen">
+    <param name="devicename" value="$(arg sick_port)"/>
+    <param name="frame" value="$(arg sick_frame)"/>
+    <param name="send_transform" value="false"/>
+     <param name="baudrate" value="500000"/>  
+    <remap from="/laserscan" to="/scan"/>
+    
+  </node>
+     <node name="run_map_server" pkg="map_server" type="map_server" output="screen" args="$(find pioneer_gazebo)/map/office.yaml"/>
+     
+<node name="rosbag_record" pkg="rosbag" type="record" args="-a -o /docker_folder/" output="screen"/>
+</launch>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="pioneer_port" default="/dev/ttyUSB1"/>
+  <arg name="sick_port" default="/dev/ttyUSB0"/>
+  <arg name="debug_aria" default="true"/>
+   <arg name="use_sonar" default="true"/>
+  
+  
+
+  <node pkg="rosaria" type="RosAria" name="RosAria" output="screen">
+    <param name="port" value="$(arg pioneer_port)"/>
+    <param name="base_link_frame" value="base_footprint"/>
+    <remap from="RosAria/cmd_vel" to="cmd_vel"/>
+    <remap from="RosAria/pose" to="/odom"/>
+  </node>
+ 
+
+   <node pkg="sicks300" type="sick300_driver" name="sick_driver" output="screen">
+    <param name="devicename" value="$(arg sick_port)"/>
+    <param name="send_transform" value="true"/>
+    <remap from="/laserscan" to="/scan"/>
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="base_sonar_broadcaster"
+	args="0.0 0.0 0.0 0.0 0.0 0.0 base_laser_link sonar 50"/>
+ 
+<node name="rosbag_record" pkg="rosbag" type="record" args="-a -o /docker_folder/" output="screen"/>
+</launch>
