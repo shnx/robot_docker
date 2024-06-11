@@ -1,0 +1,48 @@
+start = time.time()
+        ekf_map.H=ekf_map.H_squared.reshape(-1, 1)
+        print("H shape ",ekf_map.H.shape)
+
+        H_sparse = csr_matrix(ekf_map.H.T)
+        Sigma_sparse = csr_matrix(ekf_map.Sigma)
+
+        intermediate_term_sparse = H_sparse.dot(Sigma_sparse.dot(H_sparse.T))
+        alpha = 1e-6  # Small regularization parameter
+        intermediate_term_sparse_reg = intermediate_term_sparse + alpha * np.eye(intermediate_term_sparse.shape[0])
+        intermediate_inverse_sparse = pinv(intermediate_term_sparse_reg)
+
+
+        K_sparse = Sigma_sparse.dot(H_sparse.T.dot(intermediate_inverse_sparse))
+        num_nonzero_values = np.count_nonzero(K_sparse)
+        print("number of non zero value in K_sparse",num_nonzero_values )
+        ekf_map.K = K_sparse.toarray()
+        #I_minus_KH_sparse = csr_matrix(np.eye(Sigma_sparse.shape[0])) - K_sparse.dot(H_sparse)
+        #K_sparse = csr_matrix(ekf_map.K)
+        K_sparse = csr_matrix(K_sparse)
+        
+        #H_sparse = csr_matrix(ekf_map.H.T)  # Transpose ekf_map.H
+        print("shape of K_sparse",K_sparse.shape[0])
+# Create a sparse identity matrix
+        I_sparse = eye(K_sparse.shape[0], format='csr')
+
+# Calculate I_minus_KH_sparse using sparse matrix operations
+        I_minus_KH_sparse = I_sparse - K_sparse.dot(H_sparse)
+  
+        
+        temp= I_minus_KH_sparse.dot(Sigma_sparse)
+        ekf_map.Sigma =temp.toarray()
+        print("shape of K", ekf_map.K.shape)
+        print("shape of J products", J_free_perceived_prob_products.shape)
+        print("len of K",len(ekf_map.K))
+        num_nonzero_values = np.count_nonzero(ekf_map.K)
+        print("number of non zero value in K",num_nonzero_values )
+        ekf_map.mu_flattened=ekf_map.mu.reshape(-1, 1)
+        ekf_map.mu_flattened = ekf_map.mu_flattened + ekf_map.K*(1-(1-J_free_perceived_prob_products))
+        ekf_map.mu_prob=ekf_map.state_to_prob(ekf_map.mu_flattened)
+
+            
+        ekf_map.img=ekf_map.mu_prob.reshape(ekf_map.original_shape,ekf_map.original_shape)
+        ekf_map.mu=ekf_map.mu_flattened.reshape(ekf_map.original_shape,ekf_map.original_shape)
+        end = time.time()
+        elapsed = end - start
+        print("Time EKF",elapsed)
+        print(len(J_all_set))

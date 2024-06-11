@@ -1,0 +1,21 @@
+<launch>
+ <node name="slam_gmapping_laser" pkg="gmapping" type="slam_gmapping">
+        <param name="odom_frame" value="odom"/>
+        <remap from="scan" to="base_scan"/>
+    </node>
+    
+       <!-- Start AMCL -->
+    <node name="amcl_laser" pkg="amcl" type="amcl" output="screen">
+        <!-- Set the appropriate arguments for your robot -->
+        <param name="odom_frame_id" value="/gazebo/gt_pose"/>
+        <param name="base_frame_id" value="base_link"/><!--I changed it to base_link_2 because I want to feed tf from gt-->
+        <param name="global_frame_id" value="map"/>
+        <param name="initial_pose_x" value="0.0"/>
+        <param name="initial_pose_y" value="0.0"/>
+        <param name="initial_pose_a" value="0.0"/>
+        <!-- Add other AMCL-related parameters here -->
+        <remap from="scan" to="base_scan"/>
+    </node>
+     <node name="run_map_server" pkg="map_server" type="map_server" output="screen" args="$(find pioneer_gazebo)/map/map_known_poses.yaml"/>
+     
+     </launch>

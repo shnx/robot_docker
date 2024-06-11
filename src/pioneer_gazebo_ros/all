@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Check if Terminator is installed
+if ! command -v terminator &>/dev/null; then
+  echo "Terminator is not installed. Please install it first."
+  exit 1
+fi
+
+# Check if the 'test' script exists
+if [ ! -f test ]; then
+  echo "The 'test' script does not exist. Please create it."
+  exit 1
+fi
+
+# Source the .bashrc file to ensure aliases are loaded
+source ~/.bashrc &
+
+# Run ros1_activation after sourcing .bashrc
+ros1_activation &
+
+# Sleep for a moment to allow ros1_activation to start (you can adjust the sleep duration as needed)
+sleep 2
+
+# Open Terminator with two tabs
+terminator -e "bash -c './test; bash'" \
+           -e "bash -c 'rosrun teleop_twist_keyboard teleop_twist_keyboard.py cmd_vel:=pioneer/cmd_vel; bash'"
+
+# You can customize the Terminator options as needed
+# For example, to open in a specific directory:
+# terminator --working-directory=/path/to/directory -x bash -c "./test; bash"
+
+exit 0

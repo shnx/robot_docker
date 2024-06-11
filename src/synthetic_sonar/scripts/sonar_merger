@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import rospy
+from sensor_msgs.msg import LaserScan, Range
+
+class SonarToLaserScan:
+    def __init__(self):
+        rospy.init_node('sonar_to_laserscan')
+        self.sonar_sub = rospy.Subscriber('/Sonar_front_10_left', Range, self.sonar_callback)
+        self.laser_sub = rospy.Subscriber('/base_scan', LaserScan, self.laser_callback)
+        self.laser_pub = rospy.Publisher('/sonar_replaced_laserscan', LaserScan, queue_size=10)
+
+        self.sonar_range = None
+
+    def sonar_callback(self, sonar_data):
+        rospy.loginfo("Sonar callback triggered")  # Print a message when the callback is triggered
+        self.sonar_range = sonar_data.range
+
+    def laser_callback(self, laser_data):
+        rospy.loginfo("Laser scan callback triggered")  # Print a message when the callback is triggered
+
+        if self.sonar_range is not None:
+            # Replace the ranges in LaserScan message with the sonar range value
+            replaced_laser_scan = LaserScan()
+            replaced_laser_scan.header = laser_data.header
+            replaced_laser_scan.header.frame_id='Sonar_front_10_left_link'
+            replaced_laser_scan.angle_min = laser_data.angle_min
+            replaced_laser_scan.angle_max = laser_data.angle_max
+            replaced_laser_scan.angle_increment = laser_data.angle_increment
+            replaced_laser_scan.time_increment = laser_data.time_increment
+            replaced_laser_scan.range_min = laser_data.range_min
+            replaced_laser_scan.range_max = laser_data.range_max
+
+            # Fill the ranges array with sonar range value
+            num_ranges = len(laser_data.ranges)
+            replaced_laser_scan.ranges = [self.sonar_range] * len(laser_data.ranges)
+            for i in range(int(num_ranges)):
+                if(i<=(int(num_ranges/2)-5) or i>(int(num_ranges/2)+7) ):
+
+                    replaced_laser_scan.ranges[i] = float('nan')
+                
+            # Publish the replaced LaserScan message
+            self.laser_pub.publish(replaced_laser_scan)
+        else:
+            rospy.logwarn("Sonar range value not available. Laser scan message not replaced.")
+
+if __name__ == '__main__':
+    try:
+        sonar_to_laserscan = SonarToLaserScan()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
