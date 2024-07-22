@@ -10,7 +10,7 @@ Here I will explain how to setup a ros noetic container
 ###### better to update it
 ##### sudo apt install snapd
 ##### sudo snap install docker
-##### sudo system status docker
+##### sudo systemctl status docker
 ##### sudo docker run -it --net=host --device=/dev/dri:/dev/dri   --env="DISPLAY"   --env="QT_X11_NO_MITSHM=1"   --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"   --name=robot   osrf/ros:noetic-desktop-full bash -it
 #### Prepare PC to accept X11
 ##### xhost +
